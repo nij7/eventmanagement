@@ -1,0 +1,657 @@
+﻿public ActionResult AddEvent()
+        {
+
+            try
+            {
+                var newevent = new Event();
+                return View(newevent);
+            }
+            catch (Exception ex)
+            {
+
+                TempData["ErrorMessage"] = ex.Message;
+                return View();
+            }
+        }
+        [HttpPost]
+        public ActionResult Addevent(Event newevent, HttpPostedFileBase image)
+        {
+            try
+            {
+                data.AddEvent(newevent, image);
+                TempData["SuccessMessage"] = "Event added Successfully";
+                return RedirectToAction("AddEvent");
+                
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("AddEvent");
+                
+            }
+
+        }
+
+        //repository
+        private SqlConnection connection;
+        private void Connection()
+        {
+            string connectionString = ConfigurationManager.ConnectionStrings["adoConnectionString"].ToString();
+            connection = new SqlConnection(connectionString);
+        }
+        public bool AddEvent(Event newevent, HttpPostedFileBase image)
+        {
+            Connection();
+            SqlCommand command = new SqlCommand("sp_InsertEvents", connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@EventName", newevent.EventName);
+            command.Parameters.AddWithValue("@DateOfEvent", newevent.DateOfEvent);
+            command.Parameters.AddWithValue("@Description", newevent.Description);
+            byte[] Photobyte = ConvertToBytes(image);
+            command.Parameters.AddWithValue("@Image", Photobyte);
+            command.Parameters.AddWithValue("@Subevent1", newevent.Subevent1);
+            command.Parameters.AddWithValue("@Subdesc1", newevent.Subevent1);
+            command.Parameters.AddWithValue("@Subevent2", newevent.Subevent2);
+            command.Parameters.AddWithValue("@Subdesc2", newevent.Subevent2);
+            command.Parameters.AddWithValue("@Subevent3", newevent.Subevent3);
+            command.Parameters.AddWithValue("@Subdesc3", newevent.Subevent3);
+            command.Parameters.AddWithValue("@Subevent4", newevent.Subevent4);
+            command.Parameters.AddWithValue("@Subdesc4", newevent.Subevent4);
+            command.Parameters.AddWithValue("@Subevent5", newevent.Subevent5);
+            command.Parameters.AddWithValue("@Subdesc5", newevent.Subevent5);
+            connection.Open();
+            int i = command.ExecuteNonQuery();
+            connection.Close();
+
+            if (i >= 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        private byte[] ConvertToBytes(HttpPostedFileBase image)
+        {
+            if (image != null)
+            {
+                byte[] imageBytes = new byte[image.ContentLength];
+                image.InputStream.Read(imageBytes, 0, image.ContentLength);
+                return imageBytes;
+            }
+            return null;
+        }
+
+        document.getElementById("form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    
+    var isImageValid = validateImage();
+    
+    if (isImageValid ) {
+        form.submit();
+    }
+});
+
+
+document.getElementById('image').addEventListener('change', function () {
+    validateImage();
+});
+
+function validateImage() {
+    var imageInput = document.getElementById('image');
+    var imageError = document.getElementById('image-error');
+    imageError.innerText = "";
+
+    if (imageInput.files.length === 0) {
+        // No image selected
+        imageError.innerText = "Please select an image.";
+        return false; // Validation failed
+    }
+
+
+    var file = imageInput.files[0];
+
+
+    if (!file.type.startsWith('image/')) {
+        imageError.innerText = "File must be an image.";
+        imageInput.value = "";
+        return false;
+    }
+
+
+    if (file.size > 2 * 1024 * 1024) {
+        imageError.innerText = "File size must be less than or equal to 2MB.";
+        imageInput.value = "";
+        return false;
+    }
+    return true;
+}
+
+
+//view
+
+@model EventManagement.Models.Event
+
+@{
+    ViewBag.Title = "AddEvent";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    <link href="~/Content/Styles/admin/adevent.css" rel="stylesheet" />
+}
+
+@if (TempData["SuccessMessage"] != null)
+    {
+    <div class="alert alert-success" style="text-align: center">
+        <strong>@TempData["SuccessMessage"]</strong>
+    </div>
+    }
+    else if (TempData["ErrorMessage"] != null)
+    {
+    <div class="alert alert-danger" style="text-align: center">
+        <strong>@TempData["ErrorMessage"]</strong>
+    </div>
+    }
+
+    <h2>AddEvent</h2>
+
+
+    @using (Html.BeginForm("AddEvent", "Admin", FormMethod.Post, new { enctype = "multipart/form-data", id = "form" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <h4>Event</h4>
+            <hr />
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="form-group">
+                @Html.LabelFor(model => model.EventName, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.EventName, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.EventName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.DateOfEvent, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.DateOfEvent, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.DateOfEvent, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Description, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group" style="padding-bottom:20px">
+                <label class="control-label" for="image">Image</label>
+                <input type="file" id="image" name="image" class="form-control" />
+                @Html.ValidationMessageFor(model => model.Image, "", new { @class = "text-danger", @id = "image-error" })
+
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subevent1, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subevent1, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subevent1, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subdesc1, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subdesc1, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subdesc1, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subevent2, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subevent2, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subevent2, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subdesc2, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subdesc2, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subdesc2, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subevent3, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subevent3, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subevent3, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subdesc3, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subdesc3, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subdesc3, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subevent4, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subevent4, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subevent4, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subdesc4, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subdesc4, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subdesc4, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subevent5, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subevent5, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subevent5, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Subdesc5, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Subdesc5, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Subdesc5, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" value="AddEvent" class="btn btn-success" />
+                </div>
+            </div>
+        </div>
+    }
+
+    <div>
+        @Html.ActionLink("Back", "Addevent", null, new { @class = "btn btn-primary" })
+    </div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="~/Scripts/Javascript/AddEvent.js"></script>
+
+
+}
+
+
+
+////
+
+@model EventManagement.Models.Event
+
+@{
+    ViewBag.Title = "Delete Confirmation";
+}
+
+<h2>Delete Confirmation</h2>
+
+<h3>Are you sure you want to delete this event?</h3>
+<div>
+    <h4>Event</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>@Html.DisplayNameFor(model => model.EventName)</dt>
+        <dd>@Html.DisplayFor(model => model.EventName)</dd>
+        <dt>@Html.DisplayNameFor(model => model.DateOfEvent)</dt>
+        <dd>@Html.DisplayFor(model => model.DateOfEvent)</dd>
+        <dt>@Html.DisplayNameFor(model => model.Description)</dt>
+        <dd>@Html.DisplayFor(model => model.Description)</dd>
+         <dt>
+            @Html.DisplayNameFor(model => model.Subevent1)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subevent1)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Subdesc1)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subdesc1)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Subevent2)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subevent2)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Subdesc2)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subdesc2)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Subevent3)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subevent3)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Subdesc3)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subdesc3)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Subevent4)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subevent4)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Subdesc4)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subdesc4)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Subevent5)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subevent5)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Subdesc5)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Subdesc5)
+        </dd>
+    </dl>
+
+    @using (Html.BeginForm("DeleteConfirmation", "Admin", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.EventID)
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete" class="btn btn-default" /> |
+            @Html.ActionLink("Back to List", "UpdateEvent")
+        </div>
+    }
+</div>
+
+
+
+public static class PasswordHelper
+        {
+            public static string HashPassword(string password)
+            {
+                using (SHA256 sha256 = SHA256.Create())
+                {
+                    byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                    StringBuilder builder = new StringBuilder();
+                    for (int i = 0; i < bytes.Length; i++)
+                    {
+                        builder.Append(bytes[i].ToString("x2"));
+                    }
+                    return builder.ToString();
+                }
+            }
+        }
+
+        public List<Event> AllEvent()
+        {
+            List<Event> AllEventList = new List<Event>();
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = connection.CreateCommand();
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandText = "sp_AllEvents";
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                DataTable dataTable = new DataTable();
+
+                connection.Open();
+                adapter.Fill(dataTable);
+                connection.Close();
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    AllEventList.Add(new Event
+                    {
+                        EventID = Convert.ToInt32(dataRow["EventID"]),
+                        EventName = dataRow["EventName"].ToString(),
+                        DateOfEvent = dataRow["DateOfEvent"].ToString(),
+                        Description = dataRow["Description"].ToString(),
+                        Subevent1= dataRow["Subevent1"].ToString(),
+                        Subdesc1 = dataRow["Subdesc1"].ToString(),
+                        Subevent2 = dataRow["Subevent2"].ToString(),
+                        Subdesc2 = dataRow["Subdesc2"].ToString(),
+                        Subevent3 = dataRow["Subevent3"].ToString(),
+                        Subdesc3 = dataRow["Subdesc3"].ToString(),
+                        Subevent4 = dataRow["Subevent4"].ToString(),
+                        Subdesc4 = dataRow["Subdesc4"].ToString(),
+                        Subevent5 = dataRow["Subevent5"].ToString(),
+                        Subdesc5 = dataRow["Subdesc5"].ToString(),
+
+
+                    });
+                }
+            }
+            return AllEventList;
+
+        }
+
+
+
+        ///adminrepository
+
+        public List<EmployeeResponse> GetAllUserResponses()
+        {
+            List<EmployeeResponse> responses = new List<EmployeeResponse>();
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand(@" SELECT er.ResponseID, er.EventID, er.UserID, er.ResponseDate, er.Status, e.EventName, u.Username FROM EmployeeResponses er
+                                   JOIN AddEvents e ON er.EventID = e.EventID
+                                   JOIN Users u ON er.UserID = u.UserID", connection))
+            {
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    EmployeeResponse response = new EmployeeResponse
+                    {
+                        ResponseID = Convert.ToInt32(reader["ResponseID"]),
+                        EventID = Convert.ToInt32(reader["EventID"]),
+                        UserID = Convert.ToInt32(reader["UserID"]),
+                        ResponseDate = Convert.ToDateTime(reader["ResponseDate"]),
+                        Status = reader["Status"].ToString(),
+                        EventName = reader["EventName"].ToString(),
+                        Username = reader["Username"].ToString()
+                    };
+                    responses.Add(response);
+                }
+
+                connection.Close();
+            }
+
+            return responses;
+        }
+
+        public bool UpdateResponseStatus(int responseID, string status)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand("UPDATE EmployeeResponses SET Status = @Status WHERE ResponseID = @ResponseID", connection))
+            {
+                command.Parameters.AddWithValue("@ResponseID", responseID);
+                command.Parameters.AddWithValue("@Status", status);
+
+                connection.Open();
+                int rowsAffected = command.ExecuteNonQuery();
+                connection.Close();
+
+                return rowsAffected > 0;
+            }
+        }
+
+
+        ///admin controller
+        public ActionResult ViewUserResponses()
+        {
+            try
+            {
+                var responses = data.GetAllUserResponses();
+                return View(responses);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return View();
+            }
+        }
+
+        [HttpPost]
+        public ActionResult ApproveResponse(int responseID)
+        {
+            try
+            {
+                bool isUpdated = data.UpdateResponseStatus(responseID, "Success");
+                if (isUpdated)
+                {
+                    TempData["SuccessMessage"] = "Response approved successfully.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to approve response.";
+                }
+                return RedirectToAction("ViewUserResponses");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("ViewUserResponses");
+            }
+        }
+
+        ///user repository
+        public EmployeeResponse GetUserResponseForEvent(int userId, int eventId)
+        {
+            EmployeeResponse response = null;
+
+            Connection();
+            using (SqlCommand command = new SqlCommand(@"
+        SELECT er.ResponseID, er.EventID, er.UserID, er.ResponseDate, er.Status, 
+               e.EventName, u.Username 
+        FROM EmployeeResponses er
+        JOIN AddEvents e ON er.EventID = e.EventID
+        JOIN Users u ON er.UserID = u.UserID
+        WHERE er.UserID = @UserID AND er.EventID = @EventID", connection))
+            {
+                command.Parameters.AddWithValue("@UserID", userId);
+                command.Parameters.AddWithValue("@EventID", eventId);
+
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    response = new EmployeeResponse
+                    {
+                        ResponseID = Convert.ToInt32(reader["ResponseID"]),
+                        EventID = Convert.ToInt32(reader["EventID"]),
+                        UserID = Convert.ToInt32(reader["UserID"]),
+                        ResponseDate = Convert.ToDateTime(reader["ResponseDate"]),
+                        Status = reader["Status"].ToString(),
+                        EventName = reader["EventName"].ToString(),
+                        Username = reader["Username"].ToString()
+                    };
+                }
+
+                connection.Close();
+            }
+
+            return response;
+        }
+
+        ///usercontroller
+        [HttpGet]
+        public ActionResult EventResponse(int eventId)
+        {
+            if (Session["UserID"] == null)
+            {
+                return RedirectToAction("Login", "Home");
+            }
+
+            var userId = (int)Session["UserID"];
+            var responseModel = user.GetUserResponseForEvent(userId, eventId) ?? new EmployeeResponse
+            {
+                EventID = eventId,
+                UserID = userId
+            };
+
+            return View(responseModel);
+        }
+        [HttpPost]
+        public ActionResult EventResponse(EmployeeResponse response)
+        {
+            try
+            {
+                if (Session["UserID"] == null)
+                {
+                    return RedirectToAction("Login", "Home");
+                }
+
+                response.UserID = (int)Session["UserID"];
+                response.ResponseDate = DateTime.Now;
+
+                if (ModelState.IsValid)
+                {
+                    bool isInserted = user.AddUserResponse(response);
+                    if (isInserted)
+                    {
+                        TempData["SuccessMessage"] = "Response submitted successfully.";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Something went wrong while submitting your response.";
+                    }
+                }
+                return RedirectToAction("UserDashboard");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return View(response);
+            }
+        }
+
+        Procedure or function 'sp_DeleteEvent' expects parameter '@EventID', which was not supplied.
+
+
+
