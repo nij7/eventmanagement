@@ -1,0 +1,33 @@
+﻿@{
+    ViewBag.Title = "User Dashboard";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" style="text-align: center">
+        <strong>@TempData["SuccessMessage"]</strong>
+    </div>
+}
+else if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" style="text-align: center">
+        <strong>@TempData["ErrorMessage"]</strong>
+    </div>
+}
+
+<h2>Welcome Employee!</h2>
+<p>Hi, @Session["Username"]</p>
+<p>UserID @Session["UserID"]</p>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            setTimeout(function () { window.history.forward(); }, 0);
+            window.onunload = function () { null };
+});
+    </script>
+    
+
+
+}
+
